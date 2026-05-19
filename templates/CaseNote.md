@@ -21,7 +21,6 @@ tags:
 
 ## Notes
 Issue:
-Contacts:
 Name: 
 Phone: 
 Email: 
@@ -37,6 +36,12 @@ Next Steps:
 Resolution:
 Links:
 
----
+## Timeline
+```dataview
+LIST WITHOUT ID entry.caseNumber + " " + entry.date + " @ " + entry.timeStarted + " | " + entry.note
+FROM "_DATABASES/TimeTracking"
+FLATTEN file.lists AS entry
+WHERE (entry.taskType = "casework" OR entry.taskType = "call") AND string(entry.caseNumber) = this.file.name
+```
 
 <%* await tp.file.move("Notes/Cases/" + case_number + "/" + case_number); -%>
