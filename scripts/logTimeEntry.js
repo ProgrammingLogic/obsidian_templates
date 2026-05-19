@@ -2,7 +2,7 @@
  * Prompts for time tracking info and appends an entry to the time tracking database.
  */
 const TIME_TRACKING_DATABASE = "_DATABASES/TimeTracking";
-const TASK_TYPES = ["casework", "call", "scripting"];
+const TASK_TYPES = ["casework", "call", "scripting", "admin", "red_flag", "slack_support"];
 
 /**
  * Attempts to parse and normalize a time string into "H:MM AM/PM" format.
@@ -129,6 +129,20 @@ async function getCaseInfo(tp) {
     return ` [caseNumber:: ${caseNumber}] [file:: [[${caseNumber}]]]`;
 }
 
+/**
+ * Asks user for a case number and returns the formatted metadata string.
+ * Returns null if no case number is provided.
+ */
+async function getRedFlag(tp) {
+    const redFlag = await tp.system.prompt("Red Flag:");
+    if (!redFlag) {
+        new Notice("No red flag provided!");
+        return null;
+    }
+ 
+    return ` [redFlag:: ${redFlag}] [file:: [[${redFlag}]]]`;
+}
+
 module.exports = async function(tp) {
     const dbFile = app.vault.getAbstractFileByPath(TIME_TRACKING_DATABASE + ".md");
     if (!dbFile) {
@@ -143,7 +157,7 @@ module.exports = async function(tp) {
 
     const taskType = await tp.system.suggester(
         TASK_TYPES,
-        ["casework", "call", "scripting"],
+        TASK_TYPES,
         false,
         "Select task type:"
     );
@@ -173,15 +187,27 @@ module.exports = async function(tp) {
     if (!note) return null;
 
     entry += ` [note:: ${note}]`;
+    let caseInfo = "";
 
     switch (taskType) {
         case "casework":
         case "call":
-            const caseInfo = await getCaseInfo(tp);
+            caseInfo = await getCaseInfo(tp);
             if (!caseInfo) return null;
             entry += caseInfo;
             break;
         case "scripting":
+        case "admin":
+        case "slack_support":
+            break;
+        case "red_flag":
+            caseInfo = await getCaseInfo(tp);
+            if (!caseInfo) return null;
+            entry += caseInfo;
+
+            const redFlag = await getRedFlag(tp);
+            if (!redFlag) return null;
+            entry += redFlag;
             break;
         default:
             new Notice(`taskType ${taskType} is not implemented`);
