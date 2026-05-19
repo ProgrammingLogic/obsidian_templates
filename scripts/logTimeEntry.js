@@ -2,7 +2,7 @@
  * Prompts for time tracking info and appends an entry to the time tracking database.
  */
 const TIME_TRACKING_DATABASE = "_DATABASES/TimeTracking";
-const TASK_TYPES = ["casework", "call"];
+const TASK_TYPES = ["casework", "call", "scripting"];
 
 /**
  * Attempts to parse and normalize a time string into "H:MM AM/PM" format.
@@ -138,12 +138,12 @@ module.exports = async function(tp) {
 
     let entry = "-";
 
-    const date = moment().format("M/D/YYYY");
+    const date = moment().format("YYYY-MM-DD");
     entry += ` [date:: ${date}]`;
 
     const taskType = await tp.system.suggester(
         TASK_TYPES,
-        ["casework", "call"],
+        ["casework", "call", "scripting"],
         false,
         "Select task type:"
     );
@@ -180,6 +180,8 @@ module.exports = async function(tp) {
             const caseInfo = await getCaseInfo(tp);
             if (!caseInfo) return null;
             entry += caseInfo;
+            break;
+        case "scripting":
             break;
         default:
             new Notice(`taskType ${taskType} is not implemented`);
